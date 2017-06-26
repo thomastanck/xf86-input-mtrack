@@ -615,7 +615,22 @@ static int trigger_swipe_unsafe(struct Gestures* gs,
 		/* No button? Probably fingers were still down,
 		 * but without movement.
 		 */
-		return 0;
+
+		/* ...but if dist is set to 0 (the user wants to drag immediately)
+		 * and all the buttons are the same,
+		 * proceed with the drag
+		 */
+		xf86Msg(X_INFO, "cfg_swipe buttons for %d touches: %d %d %d %d\n", touches_count, cfg_swipe->up_btn, cfg_swipe->dn_btn, cfg_swipe->lt_btn, cfg_swipe->rt_btn);
+		xf86Msg(X_INFO, "cfg_swipe dist: %d\n", cfg_swipe->dist);
+		if (!(cfg_swipe->dist == 0 &&
+				cfg_swipe->up_btn == cfg_swipe->lt_btn &&
+				cfg_swipe->up_btn == cfg_swipe->rt_btn &&
+				cfg_swipe->up_btn == cfg_swipe->dn_btn)) {
+			xf86Msg(X_INFO, "aborting dist 0 swipe\n");
+			//return 0;
+		}
+		xf86Msg(X_INFO, "proceeding with dist 0 swipe\n");
+		button = cfg_swipe->up_btn;
 	}
 
 	trigger_drag_stop(gs, 1);
@@ -665,7 +680,7 @@ static int trigger_swipe_unsafe(struct Gestures* gs,
 
 		/* Don't modulo move_dist */
 	}
-	else if (gs->move_dist >= cfg_swipe->dist) {
+	else if (gs->move_dist >= cfg_swipe->dist || 1) {
 		if(cfg_swipe->hold != 0)
 			timeraddms(&gs->time, cfg_swipe->hold, &tv_tmp);
 		else
