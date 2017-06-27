@@ -185,13 +185,13 @@ void output_capabilities(const struct Capabilities *cap)
 	ADDCAP(line, cap, right);
 	ADDCAP(line, cap, mtdata);
 	ADDCAP(line, cap, ibt);
-	xf86Msg(X_INFO, "mtrack: devname: %s\n", cap->devname);
-	xf86Msg(X_INFO, "mtrack: devid: %x %x %x\n",
+	LOG_INFO("devname: %s\n", cap->devname);
+	LOG_INFO("devid: %x %x %x\n",
 		cap->devid.vendor, cap->devid.product, cap->devid.version);
-	xf86Msg(X_INFO, "mtrack: caps:%s\n", line);
+	LOG_INFO("caps:%s\n", line);
 	for (i = 0; i < MT_ABS_SIZE; i++) {
 		if (cap->has_abs[i])
-			xf86Msg(X_INFO, "mtrack: %d: min: %d max: %d\n",
+			LOG_INFO("%d: min: %d max: %d\n",
 				i,
 				cap->abs[i].minimum,
 				cap->abs[i].maximum);
