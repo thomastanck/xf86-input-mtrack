@@ -183,6 +183,6 @@ int mprops_set_property(DeviceIntPtr dev, Atom property, XIPropertyValuePtr prop
  * This function tries to detect does buttons were configured to send scroll events,
  * and if so is scrolling direction reversed (OSX like "natural" (ekhm...)) scrolling.
  */
-int mprops_update_scroll_valuators(DeviceIntPtr dev, struct MConfigSwipe* cfg_scroll);
+void mprops_update_scroll_valuators(DeviceIntPtr dev, struct MConfigSwipe* cfg_scroll);
 #endif
 

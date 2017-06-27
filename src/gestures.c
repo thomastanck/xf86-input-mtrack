@@ -126,7 +126,7 @@ static void trigger_button_click(struct Gestures* gs,
 
 #ifdef DEBUG_GESTURES
 		timersub(&gs->button_delayed_time, &gs->time, &delta);
-		xf86Msg(X_INFO, "trigger_button_click: %d placed in delayed mode; delta: %d ms\n", button, timertoms(&delta));
+		xf86Msg(X_INFO, "trigger_button_click: %d placed in delayed mode; delta: %lld ms\n", button, timertoms(&delta));
 #endif
 	}
 #ifdef DEBUG_GESTURES
@@ -247,7 +247,8 @@ static void buttons_update(struct Gestures* gs,
 	button_prev = hs->button;
 
 	if (down) {
-		int earliest, latest, lowest, moving = 0;
+		int earliest, latest, lowest = 0;
+		//int moving = 0;
 		gs->move_type = GS_NONE;
 		timeraddms(&gs->time, cfg->gesture_wait, &gs->move_wait);
 		earliest = -1;
@@ -287,8 +288,8 @@ static void buttons_update(struct Gestures* gs,
 						cfg->pad_width, zones, width, pos);
 #endif
 					for (i = 0; i < zones; i++) {
-						left = width*i;
-						right = width*(i+1);
+						left = (int)width*i;
+						right = (int)width*(i+1);
 						if ((i == 0 || pos >= left) && (i == zones - 1 || pos <= right)) {
 #ifdef DEBUG_GESTURES
 							xf86Msg(X_INFO, "buttons_update: button %d, left %d, right %d (found)\n", i, left, right);
@@ -503,7 +504,7 @@ static void trigger_move(struct Gestures* gs,
 			gs->move_dir = TR_NONE;
 			timerclear(&gs->move_wait);
 #ifdef DEBUG_GESTURES
-			xf86Msg(X_INFO, "trigger_move: %d, %d\n", gs->move_dx, gs->move_dy);
+			xf86Msg(X_INFO, "trigger_move: %.2f, %.2f\n", gs->move_dx, gs->move_dy);
 #endif
 		}
 	}
@@ -598,8 +599,9 @@ static int trigger_swipe_unsafe(struct Gestures* gs,
 			int move_type_to_trigger)
 {
 	double avg_move_x, avg_move_y;
-	int dist, button;
-	double dir;
+	int button;
+	double dist;
+	int dir;
 	struct timeval tv_tmp;
 
 	if (touches_count <= 0)
@@ -608,8 +610,7 @@ static int trigger_swipe_unsafe(struct Gestures* gs,
 	if (!cfg->scroll_smooth && cfg_swipe->dist <= 0)
 		return 0;
 
-	dir = get_swipe_dir_n(touches, touches_count);
-	dir = trig_generalize(dir);
+	dir = trig_generalize(get_swipe_dir_n(touches, touches_count));
 	button = get_button_for_dir(cfg_swipe, dir);
 	if(button == -1){
 		/* No button? Probably fingers were still down,
@@ -753,9 +754,9 @@ static int hypot_cmp(int x, int y, int value)
 
 /* Compute hypot from x, y and compare it with given value
  */
-int hypot_cmpf(float x, float y, float value)
+int hypot_cmpf(double x, double y, double value)
 {
-	float lhs, rhs;
+	double lhs, rhs;
 	lhs = x * x + y * y;
 	rhs = value * value;
 
@@ -777,7 +778,7 @@ static int can_trigger_hold_move(const struct Gestures* gs,
 				const struct MConfig* cfg, int max_move)
 {
 	struct timeval tv_tmp;
-	int i;
+	//int i;
 
 	if (touches_count <= 1)
 		return 0;
@@ -790,7 +791,7 @@ static int can_trigger_hold_move(const struct Gestures* gs,
 	if (!is_touch_stationary(touches[0], max_move))
 		return 0;
 	/* todo: make this time configurable */
-	timeraddms(&touches[0]->down, MAXVAL(cfg->tap_timeout * 1.2, 350), &tv_tmp);
+	timeraddms(&touches[0]->down, (int)MAXVAL(cfg->tap_timeout * 1.2, 350), &tv_tmp);
 	if (timercmp(&gs->time, &tv_tmp, <)) /* time < down + wait ?*/
 		return 0;
 
@@ -1152,7 +1153,7 @@ static void delayed_update(struct Gestures* gs)
 #ifdef DEBUG_GESTURES
 		struct timeval delta;
 		timersub(&gs->button_delayed_time, &gs->time, &delta);
-		xf86Msg(X_INFO, "delayed_update: %d still waiting, new delta %d ms\n", gs->button_delayed, timertoms(&delta));
+		xf86Msg(X_INFO, "delayed_update: %d still waiting, new delta %lld ms\n", gs->button_delayed, timertoms(&delta));
 #endif
 	}
 }
@@ -1192,9 +1193,9 @@ int gestures_delayed(struct MTouch* mt)
 	struct MTState* ms = &mt->state;
 	struct timeval now, delta;
 	int i, fingers_released, fingers_down;
-  int button;
+	//int button;
 
-	button = mt->gs.button_delayed;
+	//button = mt->gs.button_delayed;
 
 	// count released fingers
 	fingers_released = fingers_down = 0;
@@ -1236,7 +1237,7 @@ int gestures_delayed(struct MTouch* mt)
 		  * is used to setup timer.
 		  */
 		 if(timertoms(&delta) > 1){
-			LOG_DEBUG_GESTURES("gestures_delayed: %d delayed, new delta: %d ms\n", gs->button_delayed, timertoms(&delta));
+			LOG_DEBUG_GESTURES("gestures_delayed: %d delayed, new delta: %lld ms\n", gs->button_delayed, timertoms(&delta));
 
 			return MT_TIMER_DELAYED_BUTTON;
 		 }
